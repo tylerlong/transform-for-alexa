@@ -1,0 +1,30 @@
+{
+  "name": "transform-for-alexa",
+  "version": "0.1.0",
+  "description": "Transform audio/video files so they could be feed into Amazon Alexa.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "upgrade": "yarn-upgrade-all",
+    "build": "webpack --progress --colors",
+    "build:watch": "yarn build --watch",
+    "release": "yarn build -p",
+    "info": "cd audios && serverless info",
+    "log": "cd audios && serverless -f transform logs",
+    "log:stream": "yarn log -t",
+    "remove": "cd audios && serverless remove",
+    "deploy:full": "yarn build && cd audios && serverless deploy",
+    "deploy:full:prod": "yarn release && cd audios && serverless deploy --stage prod",
+    "deploy": "yarn deploy:full function -f transform"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "serverless": "^1.25.0",
+    "standard": "^10.0.3",
+    "webpack": "^3.10.0",
+    "yarn-upgrade-all": "^0.3.0"
+  }
+}
