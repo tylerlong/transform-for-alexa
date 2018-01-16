@@ -23,3 +23,6 @@ functions:
                 rules:
                     - prefix: uploads/
                     - suffix: .mp3
+            - http:
+                path: audios/transform
+                method: post
