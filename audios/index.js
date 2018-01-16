@@ -1,4 +1,6 @@
 import S3 from 'aws-sdk/clients/s3'
+import uuidv1 from 'uuid/v1'
+import fs from 'fs'
 
 const s3 = new S3()
 
@@ -10,12 +12,20 @@ export const transform = (event, context, callback) => {
     records = JSON.parse(event.body).Records
   }
   const record = records[0]
-  s3.copyObject({
-    CopySource: `/${record.s3.bucket.name}/${record.s3.object.key}`,
-    Bucket: record.s3.bucket.name,
-    Key: record.s3.object.key.replace('uploads/', 'transformed/')
-  }, (error, data) => {
+  const bucket = record.s3.bucket.name
+  const sourceKey = record.s3.object.key
+  const targetKey = sourceKey.replace('uploads/', 'transformed/')
+  const tempFile = `/tmp/${uuidv1()}.mp3`
+
+  s3.getObject({ Bucket: bucket, Key: sourceKey }, (error, data) => {
     console.log(error, data)
+    const body = data.Body
+    fs.writeFileSync(tempFile, body)
+    const fileContent = fs.readFileSync(tempFile)
+    s3.putObject({ Body: fileContent, Bucket: bucket, Key: targetKey }, (error, data) => {
+      console.log(error, data)
+      fs.unlinkSync(tempFile)
+    })
   })
 
   callback(null, { statusCode: 200, body: event.body, headers: event.headers })
@@ -51,7 +61,7 @@ export const transform = (event, context, callback) => {
           "arn": "arn:aws:s3:::transform-for-alexa-audios"
         },
         "object": {
-          "key": "uploads/all-choose-c.mp3",
+          "key": "uploads/4933.mp3",
           "size": 5801965,
           "eTag": "6425c20a346666daba693844bdbceab1",
           "sequencer": "005A5DC8649CD216F8"
