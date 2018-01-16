@@ -15,10 +15,11 @@ package:
     excludeDevDependencies: false
 functions:
     transform:
-        environment: ${file(./env.yml):${self:provider.stage}}
         handler: handler.transform
         events:
-            -
-                http:
-                    path: audios/transform
-                    method: post
+            - s3:
+                bucket: transform-for-alexa-audios
+                event: s3:ObjectCreated:*
+                rules:
+                    - prefix: uploads/
+                    - suffix: .mp3
