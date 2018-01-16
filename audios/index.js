@@ -1,6 +1,9 @@
 import S3 from 'aws-sdk/clients/s3'
 import uuidv1 from 'uuid/v1'
 import fs from 'fs'
+import childProcess from 'child_process'
+
+process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT']
 
 const s3 = new S3()
 
@@ -16,18 +19,29 @@ export const transform = (event, context, callback) => {
   const sourceKey = record.s3.object.key
   const targetKey = sourceKey.replace('uploads/', 'transformed/')
   const tempFile = `/tmp/${uuidv1()}.mp3`
+  const tempFile2 = `/tmp/${uuidv1()}.mp3`
 
   s3.getObject({ Bucket: bucket, Key: sourceKey }, (error, data) => {
     console.log(error, data)
     const body = data.Body
     fs.writeFileSync(tempFile, body)
-    const fileContent = fs.readFileSync(tempFile)
-    s3.putObject({ Body: fileContent, Bucket: bucket, Key: targetKey }, (error, data) => {
-      console.log(error, data)
-      fs.unlinkSync(tempFile)
+    const process = childProcess.spawn('ffmpeg', [
+      '-y', '-i', tempFile, '-ar',
+      '16000', '-ab', '48k', '-codec:a',
+      'libmp3lame', '-ac', '1', tempFile2])
+    process.stderr.on('data', data => {
+      const message = data.toString()
+      console.log(message)
+    })
+    process.on('close', (code, signal) => {
+      console.log(code, signal)
+      const fileContent = fs.readFileSync(tempFile2)
+      s3.putObject({ Body: fileContent, Bucket: bucket, Key: targetKey }, (error, data) => {
+        console.log(error, data)
+        fs.unlinkSync(tempFile)
+      })
     })
   })
-
   callback(null, { statusCode: 200, body: event.body, headers: event.headers })
 }
 

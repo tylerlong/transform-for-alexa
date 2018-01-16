@@ -17,6 +17,7 @@ package:
     - '*.yml'
   include:
     - handler.js
+    - ffmpeg
   excludeDevDependencies: false
 functions:
   transform:
