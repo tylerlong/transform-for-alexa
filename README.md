@@ -3,6 +3,15 @@
 Transform audio files so they could be feed into Amazon Alexa.
 
 
+## Usage
+
+Before you deploy this app to AWS Lambda, configure a S3 bucket name in `audios/env.yml` file.
+
+After deployment, create two folders in the S3 bucket: `input` & `output`.
+
+Whenever you upload an mp3 file to `input` folder, this app will transform the mp3 file and save the result into `output` folder.
+
+
 ## Setup
 
 ```
