@@ -13,6 +13,8 @@ cp env.sample.yml env.yml
 edit env.yml
 ```
 
+Download the [static build of ffmpeg](https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-64bit-static.tar.xz). Extract it and save the `ffmpeg` binary into `audios/` folder.
+
 
 ## Deploy
 
