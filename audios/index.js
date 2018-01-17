@@ -5,33 +5,24 @@ import childProcess from 'child_process'
 
 process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT']
 
-const s3 = new S3()
-
 export const transform = (event, context, callback) => {
-  console.log(JSON.stringify(event, null, 2))
-
-  let records = event.Records // S3
-  if (records === undefined) { // HTTP for testing purpose
-    records = JSON.parse(event.body).Records
-  }
-  const record = records[0]
+  const record = event.Records[0]
   const bucket = record.s3.bucket.name
   const sourceKey = record.s3.object.key
-  const targetKey = sourceKey.replace('uploads/', 'transformed/')
+  const targetKey = sourceKey.replace('input/', 'output/')
   const tempFile = `/tmp/${uuidv1()}.mp3`
   const tempFile2 = `/tmp/${uuidv1()}.mp3`
 
+  const s3 = new S3()
   s3.getObject({ Bucket: bucket, Key: sourceKey }, (error, data) => {
     console.log(error, data)
-    const body = data.Body
-    fs.writeFileSync(tempFile, body)
+    fs.writeFileSync(tempFile, data.Body)
     const process = childProcess.spawn('ffmpeg', [
       '-y', '-i', tempFile, '-ar',
       '16000', '-ab', '48k', '-codec:a',
       'libmp3lame', '-ac', '1', tempFile2])
     process.stderr.on('data', data => {
-      const message = data.toString()
-      console.log(message)
+      console.log(data.toString())
     })
     process.on('close', (code, signal) => {
       console.log(code, signal)
@@ -39,6 +30,7 @@ export const transform = (event, context, callback) => {
       s3.putObject({ Body: fileContent, Bucket: bucket, Key: targetKey }, (error, data) => {
         console.log(error, data)
         fs.unlinkSync(tempFile)
+        fs.unlinkSync(tempFile2)
       })
     })
   })

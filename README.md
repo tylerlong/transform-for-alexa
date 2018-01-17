@@ -1,6 +1,6 @@
 # transform-for-alexa
 
-Transform audio/video files so they could be feed into Amazon Alexa.
+Transform audio files so they could be feed into Amazon Alexa.
 
 
 ## Setup

@@ -6,11 +6,12 @@ provider:
   region: us-east-1
   memorySize: 128
   timeout: 16
+  environment: ${file(./env.yml):${self:provider.stage}}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
         - "s3:*"
-      Resource: "arn:aws:s3:::transform-for-alexa-audios/*"
+      Resource: "arn:aws:s3:::${self:provider.environment.bucketName}/*"
 package:
   exclude:
     - '*.js'
@@ -24,11 +25,8 @@ functions:
     handler: handler.transform
     events:
       - s3:
-          bucket: transform-for-alexa-audios
+          bucket: ${self:provider.environment.bucketName}
           event: s3:ObjectCreated:*
           rules:
-            - prefix: uploads/
+            - prefix: input/
             - suffix: .mp3
-      - http:
-          path: audios/transform
-          method: post
